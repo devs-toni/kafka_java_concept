@@ -2,21 +2,21 @@ package java_kafka;
 
 import java.util.concurrent.ExecutionException;
 
-public class mainn {
+public class main_poc {
 
 	
 	
 	public static void main (String [] args) {
 		
-		String server = "127.0.0.1:9092";
+		String server = "localhost:9092";
 		String topic = "user_registered";
-		String groupId = "some_application";
+		String groupId = "swarm";
 		
 		new Thread(new Runnable() {
 		    public void run() {
-		    	Producer producer = new Producer(server);
+		    	producer producer = new producer(server);
 		    	try {
-		    		producer.put(topic, "user1", "John");
+		    		producer.put(topic, "user1", "Antonio");
 		    	} catch (ExecutionException e1) {
 		    		// TODO Auto-generated catch block
 		    		e1.printStackTrace();
@@ -24,8 +24,10 @@ public class mainn {
 		    		// TODO Auto-generated catch block
 		    		e1.printStackTrace();
 		    	}
+		    	
+		    	
 		    	try {
-		    		producer.put(topic, "user2", "Peter");
+		    		producer.put(topic, "user2", "Pepe");
 		    	} catch (ExecutionException e) {
 		    		// TODO Auto-generated catch block
 		    		e.printStackTrace();
@@ -40,7 +42,7 @@ public class mainn {
 		new Thread(new Runnable() {
 		    public void run() {
 		
-				new Consumer(server, groupId, topic).run(); 
+				new consumer(server, topic).run(); 
 		    }
 		}).start();
 	}

@@ -10,12 +10,12 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.LoggerFactory;
 
-public class Producer {
+public class producer {
 	
 	KafkaProducer<String, String> mProducer = null;
-	final org.slf4j.Logger mLogger = LoggerFactory.getLogger(Producer.class);
+	final org.slf4j.Logger mLogger = LoggerFactory.getLogger(producer.class);
 	
-	Producer (String bootstrapServer) {
+	producer (String bootstrapServer) {
 		Properties props = producerProps(bootstrapServer);
 		mProducer = new KafkaProducer<String, String>(props);
 		mLogger.info("Producer initialized");

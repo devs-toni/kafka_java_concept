@@ -4,7 +4,7 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -16,24 +16,27 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.LoggerFactory;
 
-public class Consumer {
+public class consumer {
 
-	private final org.slf4j.Logger mLogger = LoggerFactory.getLogger(Consumer.class.getName());
+	public static void main(String[] args) {
+		new consumer("localhost:9092",  "user_registered").run();
+	}
+
+	private final Logger mLogger = LoggerFactory.getLogger(consumer.class.getName());
 	private String mBootstrapServer = "";
-	private String mGroupId = "";
+
 	private String mTopic = "";
 
-	Consumer(String bootstrapServer, String groupId, String topic) {
+	consumer(String bootstrapServer,  String topic) {
 		mBootstrapServer = bootstrapServer;
-		mGroupId = groupId;
 		mTopic = topic;
 	}
 
 	void run() {
-		mLogger.info("Creting consumer thread");
+		mLogger.info("HILO CONSUMIDOR -----");
 		CountDownLatch latch = new CountDownLatch(1);
 
-		ConsumerRunnable consumerRunnable = new ConsumerRunnable(mBootstrapServer, mGroupId, mTopic, latch);
+		ConsumerRunnable consumerRunnable = new ConsumerRunnable(mBootstrapServer, mTopic, latch);
 		Thread thread = new Thread(consumerRunnable);
 		thread.start();
 
@@ -43,16 +46,15 @@ public class Consumer {
 			try {
 				latch.await();
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 
-			mLogger.info("Application has exited");
+			mLogger.info("----------------SALIENDO DE LA APLICACIÓN");
 		}));
+
 		try {
 			latch.await();
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -60,23 +62,22 @@ public class Consumer {
 	private class ConsumerRunnable implements Runnable {
 		private CountDownLatch mLatch;
 		private KafkaConsumer<String, String> mConsumer;
-
-		ConsumerRunnable(String bootstrapServer, String groupId, String topic, CountDownLatch latch) {
+		
+		ConsumerRunnable(String bootstrapServer, String topic, CountDownLatch latch) {
 			mLatch = latch;
 
-			Properties props = consumerProps(bootstrapServer, groupId);
+			Properties props = consumerProps(bootstrapServer);
 			mConsumer = new KafkaConsumer<>(props);
 			mConsumer.subscribe(Collections.singletonList(topic));
 		}
-
-		private Properties consumerProps(String bootstrapServer, String groupId) {
+		private Properties consumerProps(String bootstrapServer ) {
 			String deserializer = StringDeserializer.class.getName();
 			Properties properties = new Properties();
 			properties.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServer);
-			properties.setProperty(ConsumerConfig.GROUP_ID_CONFIG, groupId);
 			properties.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 			properties.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, deserializer);
 			properties.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, deserializer);
+			properties.setProperty(ConsumerConfig.GROUP_ID_CONFIG, mTopic);
 
 			return properties;
 		}
@@ -85,7 +86,8 @@ public class Consumer {
 		public void run() {
 			try {
 				do {
-					ConsumerRecords<String, String> records = mConsumer.poll(Duration.ofMillis(100));
+					System.out.println ("escuchando.....");
+					ConsumerRecords<String, String> records = mConsumer.poll(Duration.ofMillis(1000));
 
 					for (ConsumerRecord<String, String> record : records) {
 						mLogger.info("Key: " + record.key() + ", Value: " + record.value());
@@ -93,7 +95,7 @@ public class Consumer {
 					}
 				} while (true);
 			} catch (WakeupException e) {
-				mLogger.info("Received shutdown signal!");
+				mLogger.info("------------------APAGANDO CONSUMIDOR!");
 			} finally {
 				mConsumer.close();
 				mLatch.countDown();
